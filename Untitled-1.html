@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>Checklist Pre-Operacional | Flota</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #0059b3;
+            --primary-dark: #003d80;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --light-bg: #f8f9fa;
+            --border-radius: 18px;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.25s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #e8edf5 0%, #f0f4f8 100%);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 12px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #003366 0%, #0059b3 100%);
+            color: white;
+            padding: 24px 20px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            text-align: center;
+            margin-top: 10px;
+            box-shadow: 0 8px 25px rgba(0, 53, 102, 0.3);
+        }
+
+        .header .logo-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 300;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0;
+            padding: 22px 18px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            transition: var(--transition);
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .card:last-of-type {
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            border-bottom: none;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        label i {
+            color: var(--primary);
+            width: 24px;
+            text-align: center;
+            margin-right: 6px;
+            font-size: 1.1rem;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 15px 16px;
+            border: 2px solid #e8ecf1;
+            border-radius: 14px;
+            font-size: 1rem;
+            background: #fafbfc;
+            transition: var(--transition);
+            -webkit-appearance: none;
+            font-family: inherit;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(0, 89, 179, 0.1);
+        }
+
+        .fuel-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .fuel-option {
+            background: #f8fafc;
+            border: 2.5px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 15px 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #64748b;
+            font-size: 0.85rem;
+            user-select: none;
+        }
+
+        .fuel-option:active {
+            transform: scale(0.95);
+        }
+
+        .fuel-option i {
+            font-size: 1.8rem;
+            transition: var(--transition);
+        }
+
+        .fuel-option.selected {
+            border-color: var(--primary);
+            background: #e6f0ff;
+            color: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(0, 89, 179, 0.2);
+            transform: scale(1.02);
+        }
+
+        .fuel-option.selected i {
+            transform: scale(1.1);
+        }
+
+        .checklist-item {
+            background: #fafbfc;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: var(--transition);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .checklist-item:active {
+            transform: scale(0.98);
+        }
+
+        .checklist-item.checked {
+            background: #e6ffed;
+            border-color: var(--success);
+            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.15);
+        }
+
+        .checklist-item.checked .check-circle {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .check-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2.5px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            color: transparent;
+            flex-shrink: 0;
+        }
+
+        .info-text {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .info-text i {
+            font-size: 1.5rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .info-desc {
+            font-size: 0.8rem;
+            color: #64748b;
+            display: block;
+            margin-top: 3px;
+            font-weight: 400;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            margin-top: 8px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #0059b3 0%, #0077cc 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 18px 25px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            box-shadow: 0 10px 25px rgba(0, 89, 179, 0.35);
+            transition: var(--transition);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.96);
+            box-shadow: 0 5px 15px rgba(0, 89, 179, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            transform: none;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #e6ffed;
+            color: #059669;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 50px;
+            text-align: center;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 999;
+            font-size: 0.95rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: #059669;
+        }
+
+        .toast.error {
+            background: #dc2626;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin: 20px 0;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <div class="header">
+            <div class="logo-icon">🛡️</div>
+            <h1>Checklist Pre-Operacional</h1>
+            <p>Verificación de flota • Reporte inteligente</p>
+        </div>
+
+        <form id="tripForm" autocomplete="off">
+            <!-- Chofer -->
+            <div class="card">
+                <label><i class="fas fa-user-hard-hat"></i> Chofer Asignado</label>
+                <input type="text" id="driver" list="driverList" placeholder="Escribe o selecciona tu nombre..."
+                    required>
+                <datalist id="driverList">
+                    <option value="Remigio Monsalve Marquina">
+                    <option value="Kevy Alexander González Polanco">
+                    <option value="Gabriel Alejandro Torrealba González">
+                    <option value="Carlos Eduardo Suárez">
+                </datalist>
+                <div class="status-badge" style="margin-top: 8px;">
+                    <i class="fas fa-info-circle"></i> Si no apareces, escribe tu nombre completo
+                </div>
+            </div>
+
+            <!-- Vehículo -->
+            <div class="card">
+                <label><i class="fas fa-truck"></i> Vehículo Asignado</label>
+                <input type="text" id="vehicle" list="vehicleList" placeholder="Busca por marca, modelo o placa..."
+                    required>
+                <datalist id="vehicleList">
+                    <option value="PEUGEOT PARTNER 2013 BLANCO A42CJ1A">
+                    <option value="PEUGEOT PARTNER 2013 BLANCO A42CJ2A">
+                    <option value="MITSUBISHI PANEL 2.0L BLANCO A06CP0M">
+                    <option value="CHEVROLET NHR FURGON 2009 BLANCO A37AMDA">
+                    <option value="HYUNDAI H-1 PANEL 2007 BLANCO A53AH9R">
+                    <option value="CHEVROLET C3500 4X4 2011 BLANCO A44AG9V">
+                    <option value="MERCEDES BENZ UTILITARIO 2007 BLANCO 72CKAT">
+                    <option value="MERCEDES BENZ SPRINTER 413 2005 BLANCO 95OVAU">
+                    <option value="CHEVROLET SILVERADO 2009 GRIS A20AY9A">
+                    <option value="JEEP GRAND CHEROKEE 2011 AZUL AH807HD">
+                    <option value="CHERY H5 2011 PLATA AG948KA">
+                    <option value="CHERY H5 2011 PLATA AE162RM">
+                    <option value="JEEP GRAND CHEROKEE 2009 AZUL AA3090F">
+                    <option value="NISSAN PATROL 2006 PLATA AA704DY">
+                    <option value="FORD EXPLORER 2008 BEIGE AA219MH">
+                    <option value="FORD EXPLORER 2008 AZUL GDH02A">
+                    <option value="FORD SUPER DUTY 2012 BLANCO A13BX2G">
+                </datalist>
+                <div class="status-badge" style="margin-top: 8px; background: #fff7ed; color: #c2410c;">
+                    <i class="fas fa-lightbulb"></i> Si es nuevo, solo escríbelo
+                </div>
+            </div>
+
+            <!-- Destino -->
+            <div class="card">
+                <label><i class="fas fa-map-pin"></i> Destino / Ruta</label>
+                <input type="text" id="destination" placeholder="Ej: Centro de Distribución Norte, Calle 80" required>
+            </div>
+
+            <!-- Combustible -->
+            <div class="card">
+                <label><i class="fas fa-gas-pump"></i> Nivel de Combustible</label>
+                <div class="fuel-grid">
+                    <div class="fuel-option" data-fuel="Lleno">
+                        <i class="fas fa-fill-drip"></i> Lleno
+                    </div>
+                    <div class="fuel-option" data-fuel="3/4">
+                        <i class="fas fa-tachometer-alt"></i> 3/4
+                    </div>
+                    <div class="fuel-option" data-fuel="1/2">
+                        <i class="fas fa-tachometer-alt"></i> Medio
+                    </div>
+                    <div class="fuel-option" data-fuel="1/4">
+                        <i class="fas fa-tachometer-alt"></i> 1/4
+                    </div>
+                </div>
+                <input type="hidden" id="fuelInput" required>
+            </div>
+
+            <!-- Checklist -->
+            <div class="card">
+                <label style="margin-bottom: 16px;"><i class="fas fa-tools"></i> Checklist de Revisión</label>
+
+                <div class="checklist-item" data-check="aceite">
+                    <div class="info-text">
+                        <i class="fas fa-oil-can" style="color: #e67e22;"></i>
+                        <div><strong>Aceite y Fluidos</strong><span class="info-desc">Nivel de aceite, frenos, dirección
+                                hidráulica</span></div>
+                    </div>
+                    <div class="check-circle"><i class="fas fa-check"></i></div>
+                </div>
+
+                <div class="checklist-item" data-check="refrigerante">
+                    <div class="info-text">
+                        <i class="fas fa-thermometer-half" style="color: #3498db;"></i>
+                        <div><strong>Refrigerante</strong><span class="info-desc">Nivel del líquido y mangueras sin
+                                fugas</span></div>
+                    </div>
+                    <div class="check-circle"><i class="fas fa-check"></i></div>
+                </div>
+
+                <div class="checklist-item" data-check="ruidos">
+                    <div class="info-text">
+                        <i class="fas fa-deaf" style="color: #2c3e50;"></i>
+                        <div><strong>Ruidos / Fugas / Fallas</strong><span class="info-desc">Inspección visual y
+                                auditiva general</span></div>
+                    </div>
+                    <div class="check-circle"><i class="fas fa-check"></i></div>
+                </div>
+
+                <div style="margin-top: 18px;">
+                    <label><i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i> Novedades
+                        Detectadas</label>
+                    <textarea id="issues" rows="3"
+                        placeholder="Describe cualquier falla, ruido extraño o novedad... (Si no hay, escribe 'Sin novedades')"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-paper-plane"></i> Enviar Reporte y Notificar
+            </button>
+
+            <div class="footer-note">
+                <i class="fas fa-shield-alt"></i> Los datos se guardan en la nube • Se abrirá WhatsApp para confirmar
+            </div>
+        </form>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        (function () {
+            // ==================== CONFIGURACIÓN DE SUPABASE ====================
+            // Reemplaza con tus credenciales de Supabase
+            const SUPABASE_URL = 'https://tpzszllewdnbipqhfxrp.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_itjKawB1f02OfkPPROcKTA_nn-YoILp';
+
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // Número del administrador (con código de país, sin +)
+            const ADMIN_PHONE = '584126112796'; // CAMBIAR: número real del admin
+
+            // ==================== LÓGICA DE COMBUSTIBLE ====================
+            const fuelOptions = document.querySelectorAll('.fuel-option');
+            const fuelInput = document.getElementById('fuelInput');
+
+            fuelOptions.forEach(option => {
+                option.addEventListener('click', function () {
+                    fuelOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    fuelInput.value = this.dataset.fuel;
+                    // Vibración háptica si está disponible
+                    if (window.navigator.vibrate) window.navigator.vibrate(10);
+                });
+            });
+
+            // ==================== LÓGICA DE CHECKLIST ====================
+            const checklistItems = document.querySelectorAll('.checklist-item');
+            checklistItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    this.classList.toggle('checked');
+                    if (window.navigator.vibrate) window.navigator.vibrate(15);
+                });
+            });
+
+            // ==================== VALIDACIÓN Y ENVÍO ====================
+            const form = document.getElementById('tripForm');
+            const toast = document.getElementById('toast');
+
+            function showToast(message, type = 'success') {
+                toast.textContent = message;
+                toast.className = `toast ${type} show`;
+                setTimeout(() => { toast.classList.remove('show'); }, 4000);
+            }
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                // Validar Checklist
+                const checkedCount = document.querySelectorAll('.checklist-item.checked').length;
+                if (checkedCount < 3) {
+                    showToast('⚠️ Debes confirmar los 3 checks de revisión', 'error');
+                    const unchecked = document.querySelectorAll('.checklist-item:not(.checked)');
+                    if (unchecked.length > 0) {
+                        unchecked[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        unchecked[0].style.borderColor = '#dc3545';
+                        setTimeout(() => { unchecked[0].style.borderColor = '#e2e8f0'; }, 2000);
+                    }
+                    return;
+                }
+
+                // Validar Combustible
+                if (!fuelInput.value) {
+                    showToast('⚠️ Selecciona el nivel de combustible', 'error');
+                    return;
+                }
+
+                // Recoger datos
+                const driver = document.getElementById('driver').value.trim();
+                const vehicle = document.getElementById('vehicle').value.trim();
+                const destination = document.getElementById('destination').value.trim();
+                const issues = document.getElementById('issues').value.trim() || 'Sin novedades reportadas';
+
+                if (!driver || !vehicle || !destination) {
+                    showToast('⚠️ Completa todos los campos obligatorios', 'error');
+                    return;
+                }
+
+                // Deshabilitar botón
+                const btn = document.querySelector('.btn-submit');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Guardando...';
+
+                try {
+                    // 1. Guardar en Supabase
+                    const { data, error } = await supabase
+                        .from('reportes_preoperacionales')
+                        .insert([
+                            {
+                                chofer: driver,
+                                vehiculo: vehicle,
+                                destino: destination,
+                                combustible: fuelInput.value,
+                                checklist_aceite: true,
+                                checklist_refrigerante: true,
+                                checklist_ruidos: true,
+                                novedades: issues,
+                                fecha_hora: new Date().toISOString()
+                            }
+                        ])
+                        .select();
+
+                    if (error) {
+                        console.error('Error Supabase:', error);
+                        showToast('❌ Error al guardar. Intenta de nuevo.', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Reporte y Notificar';
+                        return;
+                    }
+
+                    console.log('✅ Guardado en Supabase:', data);
+
+                    // 2. Construir mensaje para WhatsApp
+                    const mensaje = encodeURIComponent(
+                        `🚛 *REPORTE PRE-OPERACIONAL* 🚛\n\n` +
+                        `👤 *Chofer:* ${driver}\n` +
+                        `🚘 *Vehículo:* ${vehicle}\n` +
+                        `📍 *Destino:* ${destination}\n` +
+                        `⛽ *Combustible:* ${fuelInput.value}\n\n` +
+                        `✅ *Checklist Completado:*\n` +
+                        `   • Aceite y Fluidos: OK\n` +
+                        `   • Refrigerante: OK\n` +
+                        `   • Ruidos/Fugas: OK\n\n` +
+                        `⚠️ *Novedades:* ${issues}\n\n` +
+                        `🕒 *Fecha:* ${new Date().toLocaleString('es-VE', { timeZone: 'America/Caracas' })}\n\n` +
+                        `_Reporte generado desde sistema digital_`
+                    );
+
+                    // 3. Abrir WhatsApp del chofer con mensaje pre-escrito
+                    const whatsappURL = `https://wa.me/${584126112796}?text=${mensaje}`;
+
+                    // Pequeño delay para asegurar que se guardó
+                    setTimeout(() => {
+                        window.open(whatsappURL, '_blank');
+                    }, 500);
+
+                    // Feedback
+                    showToast('✅ ¡Reporte guardado! Revisa WhatsApp para enviar el mensaje.', 'success');
+
+                    // Resetear formulario
+                    form.reset();
+                    fuelOptions.forEach(opt => opt.classList.remove('selected'));
+                    checklistItems.forEach(item => item.classList.remove('checked'));
+                    fuelInput.value = '';
+
+                    // Scroll al inicio
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                } catch (error) {
+                    console.error('Error general:', error);
+                    showToast('❌ Error de conexión. Verifica tu internet.', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar Reporte y Notificar';
+                }
+            });
+
+            // ==================== MEJORA: INPUT CON DATALIST QUE PERMITE NUEVOS VALORES ====================
+            // Los inputs con datalist permiten escribir valores nuevos por defecto,
+            // pero mejoramos la experiencia para móviles
+            const driverInput = document.getElementById('driver');
+            const vehicleInput = document.getElementById('vehicle');
+
+            // Limpiar selección previa al focus para mejor búsqueda
+            [driverInput, vehicleInput].forEach(input => {
+                input.addEventListener('focus', function () {
+                    if (this.value) {
+                        this.setSelectionRange(0, this.value.length);
+                    }
+                });
+            });
+
+            console.log('🚛 Sistema Pre-Operacional listo');
+            console.log('📊 Supabase conectado:', SUPABASE_URL);
+            console.log('📱 WhatsApp admin:', ADMIN_PHONE);
+
+        })();
+    </script>
+</body>
+
+</html>
